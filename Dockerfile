@@ -16,6 +16,11 @@ RUN go build -o app
 # Stage 2: Run 
 FROM alpine:3.18
 
+# LABELS 
+LABEL maintainer="Prasanna Kumar"
+LABEL version="1.0"
+LABEL description="Go App with CI/CD pipeline"
+
 WORKDIR /app
 
 # Create non-root user
