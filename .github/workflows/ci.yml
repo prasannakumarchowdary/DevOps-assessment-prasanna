@@ -20,13 +20,12 @@ jobs:
 
       - name: Lint Helm chart
         run: |
-          cd helm/lib-common
-          helm lint
+          helm lint helm/lib-common
 
       - name: Render Helm templates
         run: |
-          cd helm/lib-common
-          helm template .
+          helm template helm/lib-common
+          
 
   docker-lint:
     name: Dockerfile Lint
