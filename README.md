@@ -141,6 +141,8 @@ kubectl get pods
 ```bash
 kubectl get svc
 ```
+- Pods are running successfully
+- Service is exposed and reachable
 
 All resources were verified to be running and healthy.
 
