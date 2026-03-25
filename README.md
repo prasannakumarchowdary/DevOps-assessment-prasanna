@@ -1,127 +1,174 @@
-# Senior DevOps Engineer - Technical Assessment
+# DevOps Technical Assessment
 
 ## Overview
 
-This assessment evaluates your ability to containerize an application, build a CI/CD pipeline, and structure a Helm chart for Kubernetes deployment. You have **5 days** to complete it, though we expect it to take roughly **1 day** of focused work.
+This project demonstrates an end-to-end DevOps workflow, including containerization, CI/CD, Helm-based deployment, and local Kubernetes validation.
 
-## What You Need to Do
-
-1. Create a **public** GitHub repository on your own GitHub account
-2. Use the contents of this zip as your starting point
-3. Complete the tasks below
-4. Send us the link to your repository when you're done
+The goal was to build, package, deploy, and validate a Go-based application using modern DevOps practices.
 
 ---
 
-## Task 1: Dockerfile
+## Tech Stack
 
-A simple Go "Hello World" web server is provided in the `app/` directory.
-
-Write a **production-ready Dockerfile** for this application. Place it at the root of the repository.
-
-Things we look for:
-- Multi-stage build
-- Minimal final image
-- Runs as a non-root user
-- Proper use of build cache
+* Go (application)
+* Docker (multi-stage build)
+* Kubernetes (Docker Desktop)
+* Helm (application deployment)
+* GitHub Actions (CI/CD pipeline)
 
 ---
 
-## Task 2: GitHub Actions Pipeline
+## Application
 
-Create a GitHub Actions workflow (`.github/workflows/ci.yml`) that triggers on pushes to `main` and on pull requests.
+### Build Docker Image
 
-The pipeline should have **3 jobs**:
-
-**Job 1 - Lint Helm Chart:**
-- Build the lib-common dependency (`helm dependency build`)
-- Lint the chart (`helm lint`)
-- Render the chart (`helm template`) to verify it produces valid output
-
-**Job 2 - Lint Dockerfile:**
-- Lint the Dockerfile using [hadolint](https://github.com/hadolint/hadolint)
-
-**Job 3 - Build Docker Image:**
-- Should only run after the linting jobs pass
-- Build the Docker image using Docker Buildx
-- Tag the image with the **git short SHA**
-- The image does not need to be pushed to a registry
-
----
-
-## Task 3: Helm Chart
-
-Create a Helm chart in `helm/hello-world/` that deploys the application to Kubernetes.
-
-Your chart **must** use the provided library chart located in `helm/lib-common/` as a dependency. The library chart provides common templates for Deployments and Services that you should reference in your chart's templates.
-
-Your chart should include:
-- `Chart.yaml` (with lib-common as a local dependency)
-- `values.yaml` with sensible defaults
-- Templates for a Deployment and a Service (using the library helpers)
-- Resource requests and limits
-- Health check probes (the app exposes `/healthz`)
-
-> **Note:** Review the library chart carefully. If you find any issues, fix them and document what you changed and why in your README.
-
----
-
-## Deliverables
-
-Your submitted repository should contain:
-
-```
-.
-├── Dockerfile
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── app/
-│   ├── main.go
-│   └── go.mod
-├── helm/
-│   ├── hello-world/          (you create this)
-│   │   ├── Chart.yaml
-│   │   ├── values.yaml
-│   │   └── templates/
-│   │       ├── deployment.yaml
-│   │       └── service.yaml
-│   └── lib-common/           (provided - fix any issues you find)
-│       ├── Chart.yaml
-│       └── templates/
-│           ├── _helpers.tpl
-│           ├── _deployment.tpl
-│           └── _service.tpl
-└── README.md                 (your notes, decisions, and any issues found)
+```bash
+docker build -t hello-app:latest .
 ```
 
----
+### Run Locally (optional)
 
-## Bonus: Local Deployment
+```bash
+docker run -p 8080:8080 hello-app:latest
+```
 
-For bonus points, deploy the application to a local Kubernetes cluster (e.g. Docker Desktop with Kubernetes enabled):
+### Endpoints
 
-1. Build the Docker image locally
-2. Install the Helm chart into your cluster
-3. Port-forward the service to `localhost:8081`
-4. Include screenshots in your README showing:
-   - The app running at `http://localhost:8081/`
-   - The health check at `http://localhost:8081/healthz`
-   - `kubectl get pods` and `kubectl get svc` output showing healthy resources
-
-This is not required but demonstrates hands-on Kubernetes experience.
+* `/` → Returns application response
+* `/healthz` → Health check endpoint
 
 ---
 
-## Evaluation Criteria
+## CI/CD Pipeline
 
-| Area                    | What we're looking at                              |
-|-------------------------|----------------------------------------------------|
-| Dockerfile              | Build stages, security, image size, caching        |
-| GitHub Actions          | Pipeline structure, linting, build steps           |
-| Helm chart              | Clean structure, proper use of library, values     |
-| Library chart bug       | Did you find it? How did you fix it?               |
-| Documentation           | Clear reasoning and trade-off awareness            |
-| Local deployment (bonus)| Screenshots of app running in a local k8s cluster  |
+Implemented using GitHub Actions with the following stages:
 
-Good luck!
+* Helm chart linting
+* Dockerfile linting (Hadolint)
+* Docker image build
+
+### Key Improvements
+
+* Multi-stage Docker build for smaller image size
+* Non-root container user for improved security
+* Automated validation of Helm charts
+
+---
+
+## Helm Chart Implementation
+
+A Helm chart was created in:
+
+```
+helm/hello-world
+```
+
+### Features
+
+* Uses reusable library chart (`lib-common`)
+* Deployment and Service defined via shared templates
+* Configurable through `values.yaml`
+* Includes:
+
+  * Resource requests and limits
+  * Liveness and readiness probes (`/healthz`)
+  * Service exposure configuration
+
+---
+
+## Fixes Applied to Library Chart (lib-common)
+
+The provided library chart contained multiple issues that prevented successful deployment. These were identified and resolved:
+
+* Fixed incorrect YAML indentation in deployment template
+* Corrected container structure (ports incorrectly placed outside container block)
+* Ensured proper list formatting using `-` where required
+* Aligned probe configuration with application health endpoint
+* Verified all templates render valid Kubernetes manifests
+
+These fixes were necessary to ensure Helm linting and deployment success.
+
+---
+
+## Kubernetes Deployment (Bonus)
+
+The application was deployed to a local Kubernetes cluster using Docker Desktop.
+
+### Steps Performed
+
+* Built Docker image locally
+* Installed Helm chart
+* Exposed service using port-forwarding
+
+### Deploy Command
+
+```bash
+helm install hello hello-world
+```
+
+### Verify Resources
+
+```bash
+kubectl get pods
+kubectl get svc
+```
+
+### Port Forward
+
+```bash
+kubectl port-forward svc/hello-hello-world 8081:80
+```
+
+---
+
+## Access Application
+
+* App: http://localhost:8081/
+* Health Check: http://localhost:8081/healthz
+
+---
+
+## Verification
+
+### Pods
+
+```bash
+kubectl get pods
+```
+
+### Services
+
+```bash
+kubectl get svc
+```
+
+All resources were verified to be running and healthy.
+
+---
+
+## Screenshots
+
+ following screenshots are of Local deployment
+
+1. Application running at `/`
+2. Health check endpoint `/healthz`
+3. Output of `kubectl get pods`
+4. Output of `kubectl get svc`
+
+---
+
+## Key Learnings
+
+* Debugging Helm templates and resolving YAML structure issues
+* Working with reusable Helm library charts
+* Building secure and optimized Docker images
+* Implementing CI/CD pipelines for validation and automation
+* Deploying and validating applications in Kubernetes environments
+
+---
+
+## Conclusion
+
+This project demonstrates the ability to design, build, debug, and deploy a complete DevOps workflow, including handling real-world issues such as broken templates and deployment failures.
+
+---
