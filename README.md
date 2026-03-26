@@ -17,6 +17,36 @@ The goal was to build, package, deploy, and validate a Go-based application usin
 * GitHub Actions (CI/CD pipeline)
 
 ---
+## Project Structure
+
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions CI/CD pipeline
+│
+├── app/                        # Go application source code
+│   ├── go.mod
+│   └── main.go
+│
+├── helm/
+│   ├── hello-world/            # Application Helm chart
+│   │   ├── Chart.yaml
+│   │   ├── values.yaml
+│   │   └── templates/
+│   │       ├── deployment.yaml # Uses lib-common deployment template
+│   │       └── service.yaml    # Uses lib-common service template
+│   │
+│   └── lib-common/             # Reusable Helm library chart
+│       ├── Chart.yaml
+│       └── templates/
+│           ├── _deployment.tpl # Shared deployment template
+│           ├── _service.tpl    # Shared service template
+│           └── _helpers.tpl    # Helper functions (labels, naming)
+│
+├── Dockerfile                 # Multi-stage Docker build
+├── .dockerignore              # Excludes unnecessary files from build
+├── README.md                  # Project documentation
+
+
 
 ## Application
 
